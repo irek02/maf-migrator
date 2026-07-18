@@ -1,0 +1,16 @@
+# Builder run state — local only, never committed (see bet-builder skill)
+.builder.lock
+
+# Benchmark corpus clones — real third-party repos, test material only, never redistributed
+corpus/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
