@@ -2,8 +2,8 @@
 
 **Status:** Phase 0 (scaffold + harness + corpus) — nothing built yet; next item is 0.1.
 **Last updated:** 2026-07-18 (by Irek)
-**Waiting on Irek:** nothing (confirm the build server's GitHub token can read this private
-repo — same prereq attio-sheets needed — then the builder is unblocked).
+**Waiting on Irek:** nothing — build server token granted repo access 2026-07-18; builder
+fully unblocked through gate 1.5.
 
 ## What this is
 
