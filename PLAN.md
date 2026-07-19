@@ -1,6 +1,6 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 0 (scaffold + harness + corpus) — scaffold + package pins done; next item is 0.3.
+**Status:** Phase 0 (scaffold + harness + corpus) — scaffold, pins, and guide fixtures done; next item is 0.4 (corpus manifest + runner).
 **Last updated:** 2026-07-19 (by agent)
 **Waiting on Irek:** nothing — build server token granted repo access 2026-07-18; builder
 fully unblocked through gate 1.5.
@@ -67,13 +67,20 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       (done 2026-07-19, awaiting manual verification)
       Manual test: `pip install -e ".[dev]" && python3 -m pytest tests/test_package_pins.py -v` — 3 version-pin tests should pass (agent-framework-core==1.11.0, autogen-agentchat==0.4.9.3, pyautogen==0.2.35). Also verify `docs/targets.md` exists and contains the PyPI links.
       MAF package: `agent-framework-core` (import name: `agent_framework`); full meta-package: `agent-framework`. The `__version__` attr reads `0.0.0` — use `importlib.metadata.version("agent-framework-core")` for the real version.
-- [ ] [agent] 0.3 Ground-truth fixtures: extract before/after example pairs from
+- [x] [agent] 0.3 Ground-truth fixtures: extract before/after example pairs from
       Microsoft's official AutoGen→MAF migration guide
       (learn.microsoft.com `/agent-framework/migration-guide/from-autogen/`) into
       `tests/fixtures/guide/<case>/{before.py,expected_after.py}`, with `SOURCES.md`
       linking each pair to its guide section. No transform code yet — these are the
       pre-written acceptance tests for Phase 2. Test: a validity test asserts every
       `before.py` parses and every pair is complete.
+      (done 2026-07-19, awaiting manual verification)
+      Manual test: `python3 -m pytest tests/test_guide_fixtures.py -v` — 6 validity tests
+      should pass. Also inspect `tests/fixtures/guide/` — should contain 5 case dirs
+      (model_client_openai, basic_agent_creation, tool_creation, streaming, messages),
+      each with before.py and expected_after.py, plus SOURCES.md.
+      Cases sourced from: model client, agent creation, tool creation, streaming, messages
+      sections of the live migration guide.
 - [ ] [agent] 0.4 Corpus manifest + runner: `corpus.yaml` (~25 public GitHub repos that
       import AutoGen — mix of v0.4 `autogen_agentchat` and legacy `import autogen` users,
       each with url, pinned commit, license, generation; candidates from the 2026-07-18
@@ -207,3 +214,4 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
   ~1,584 legacy hits). Next: builder starts at 0.1.
 - 2026-07-19 — 0.1 done: pyproject.toml (setuptools.build_meta, src layout), `maf_migrator` package with `maf-migrate` console script, `typer` CLI with `--version`, integrated smoke test (`maf-migrate --version` exits 0 and prints version). pytest 1/1. Next: 0.2 (pin MAF + AutoGen package targets).
 - 2026-07-19 — 0.2 done: MAF package identified as `agent-framework-core==1.11.0` (import: `agent_framework`; full meta-package: `agent-framework`; verified against PyPI + github.com/microsoft/agent-framework). AutoGen pins: `autogen-agentchat==0.4.9.3` (v0.4 line), `pyautogen==0.2.35` (legacy v0.2 line). Added as dev extras in pyproject.toml. `docs/targets.md` written with exact versions + PyPI links + gotcha note (module `__version__` attr vs metadata version). `tests/test_package_pins.py` asserts all 3 pins. pytest 4/4. Next: 0.3 (ground-truth fixtures from migration guide).
+- 2026-07-19 — 0.3 done: 5 before/after fixture pairs extracted from the live migration guide (learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/) into `tests/fixtures/guide/`: model_client_openai, basic_agent_creation, tool_creation, streaming, messages. Each pair has before.py (AutoGen 0.4) + expected_after.py (MAF). SOURCES.md links each case to its guide section. Validity test (`tests/test_guide_fixtures.py`, 6 tests) asserts dir exists, ≥5 cases, both files present, both sides parse. pytest 10/10. Next: 0.4 (corpus manifest + runner).
