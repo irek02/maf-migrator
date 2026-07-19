@@ -19,6 +19,11 @@ maf-migrate = "maf_migrator.cli:app"
 dev = [
     "pytest>=8",
     "pyright>=1.1",
+    # MAF target (what we migrate TO)
+    "agent-framework-core==1.11.0",
+    # AutoGen sources (what we migrate FROM)
+    "autogen-agentchat==0.4.9.3",
+    "pyautogen==0.2.35",
 ]
 
 [tool.setuptools.packages.find]

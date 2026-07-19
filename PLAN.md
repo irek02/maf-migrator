@@ -1,6 +1,6 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 0 (scaffold + harness + corpus) — scaffold done; next item is 0.2.
+**Status:** Phase 0 (scaffold + harness + corpus) — scaffold + package pins done; next item is 0.3.
 **Last updated:** 2026-07-19 (by agent)
 **Waiting on Irek:** nothing — build server token granted repo access 2026-07-18; builder
 fully unblocked through gate 1.5.
@@ -58,12 +58,15 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       (done 2026-07-19, awaiting manual verification)
       Manual test: `pip install -e . && maf-migrate --version` — should print `maf-migrate 0.1.0` and exit 0.
       CLI framework chosen: `typer` (clean declarative API, rich help output).
-- [ ] [agent] 0.2 Pin the target: identify the real MAF Python package(s) on PyPI (verify
+- [x] [agent] 0.2 Pin the target: identify the real MAF Python package(s) on PyPI (verify
       names/versions against PyPI + the official repo — **check against source, not blog
       posts**), pin them and the AutoGen packages (`autogen-agentchat` 0.4.x line, legacy
       0.2 `pyautogen`/`autogen` line) as dev extras, and record exact pins + links in
       `docs/targets.md`. Test: an integrated test imports the installed MAF package and
       asserts the pinned version, so a pin drift fails loudly.
+      (done 2026-07-19, awaiting manual verification)
+      Manual test: `pip install -e ".[dev]" && python3 -m pytest tests/test_package_pins.py -v` — 3 version-pin tests should pass (agent-framework-core==1.11.0, autogen-agentchat==0.4.9.3, pyautogen==0.2.35). Also verify `docs/targets.md` exists and contains the PyPI links.
+      MAF package: `agent-framework-core` (import name: `agent_framework`); full meta-package: `agent-framework`. The `__version__` attr reads `0.0.0` — use `importlib.metadata.version("agent-framework-core")` for the real version.
 - [ ] [agent] 0.3 Ground-truth fixtures: extract before/after example pairs from
       Microsoft's official AutoGen→MAF migration guide
       (learn.microsoft.com `/agent-framework/migration-guide/from-autogen/`) into
@@ -203,3 +206,4 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
   availability verified live (94 unique repos in first 100 code hits for v0.4 imports;
   ~1,584 legacy hits). Next: builder starts at 0.1.
 - 2026-07-19 — 0.1 done: pyproject.toml (setuptools.build_meta, src layout), `maf_migrator` package with `maf-migrate` console script, `typer` CLI with `--version`, integrated smoke test (`maf-migrate --version` exits 0 and prints version). pytest 1/1. Next: 0.2 (pin MAF + AutoGen package targets).
+- 2026-07-19 — 0.2 done: MAF package identified as `agent-framework-core==1.11.0` (import: `agent_framework`; full meta-package: `agent-framework`; verified against PyPI + github.com/microsoft/agent-framework). AutoGen pins: `autogen-agentchat==0.4.9.3` (v0.4 line), `pyautogen==0.2.35` (legacy v0.2 line). Added as dev extras in pyproject.toml. `docs/targets.md` written with exact versions + PyPI links + gotcha note (module `__version__` attr vs metadata version). `tests/test_package_pins.py` asserts all 3 pins. pytest 4/4. Next: 0.3 (ground-truth fixtures from migration guide).
