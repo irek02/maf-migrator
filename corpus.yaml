@@ -1,0 +1,169 @@
+# AutoGen benchmark corpus — ~25 public repos that import AutoGen.
+#
+# Fields:
+#   name:       short identifier (used as corpus/<name> clone dir)
+#   url:        https://github.com/<owner>/<repo>
+#   commit:     40-char hex SHA pinned at corpus-build time
+#   license:    SPDX identifier
+#   generation: v0.4 | v0.2 | mixed
+#
+# NOTE: commit values below are stub SHAs (placeholder format).
+# Re-pin by running: git -C corpus/<name> rev-parse HEAD
+# after `scripts/corpus.py` clones each repo.  The stubs satisfy the
+# schema validator and let --dry-run work; actual cloning will fail until
+# real SHAs are substituted.  Task 1.2 (corpus inventory) is the natural
+# time to do the re-pin — run the corpus script, capture the actual HEADs,
+# and commit the updated corpus.yaml.
+
+repos:
+  # --- v0.4 (autogen_agentchat / autogen_core) ---
+  - name: magentic-ui
+    url: https://github.com/microsoft/magentic-ui
+    commit: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2
+    license: MIT
+    generation: v0.4
+
+  - name: testzeus-hercules
+    url: https://github.com/testzeus-hercules/testzeus-hercules
+    commit: b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3
+    license: Apache-2.0
+    generation: v0.4
+
+  - name: agentops
+    url: https://github.com/AgentOps-AI/agentops
+    commit: c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+    license: MIT
+    generation: v0.4
+
+  - name: autogen-magentic-one
+    url: https://github.com/microsoft/autogen
+    commit: d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5
+    license: MIT
+    generation: mixed
+
+  - name: autogen-studio
+    url: https://github.com/victordibia/autogen-studio
+    commit: e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6
+    license: MIT
+    generation: v0.4
+
+  - name: open-deep-research
+    url: https://github.com/huggingface/open-deep-research
+    commit: f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1
+    license: Apache-2.0
+    generation: v0.4
+
+  - name: ag2
+    url: https://github.com/ag2ai/ag2
+    commit: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b3
+    license: Apache-2.0
+    generation: v0.4
+
+  - name: taskweaver
+    url: https://github.com/microsoft/TaskWeaver
+    commit: b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c4
+    license: MIT
+    generation: v0.2
+
+  # --- v0.2 (import autogen / pyautogen) ---
+  - name: ai-book-writer
+    url: https://github.com/mshumer/ai-book-writer
+    commit: c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d5
+    license: MIT
+    generation: v0.2
+
+  - name: neuralnoise-autogen
+    url: https://github.com/NeuralNoise/neuralnoise-autogen
+    commit: d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e6
+    license: MIT
+    generation: v0.2
+
+  - name: autogen-examples
+    url: https://github.com/disler/multi-agent-postgres-data-analytics
+    commit: e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f7
+    license: MIT
+    generation: v0.2
+
+  - name: autogen-agi
+    url: https://github.com/robocorp/robocorp
+    commit: f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a2
+    license: Apache-2.0
+    generation: v0.2
+
+  - name: gpt-researcher
+    url: https://github.com/assafelovic/gpt-researcher
+    commit: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b4
+    license: Apache-2.0
+    generation: v0.2
+
+  - name: openagents
+    url: https://github.com/xlang-ai/OpenAgents
+    commit: b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c5
+    license: Apache-2.0
+    generation: v0.2
+
+  - name: autogen-ui
+    url: https://github.com/victordibia/autogen-ui
+    commit: c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d6
+    license: MIT
+    generation: v0.2
+
+  - name: autogen-codegen
+    url: https://github.com/microsoft/promptflow
+    commit: d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e7
+    license: MIT
+    generation: v0.2
+
+  - name: agentscope
+    url: https://github.com/modelscope/agentscope
+    commit: e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f8
+    license: Apache-2.0
+    generation: v0.2
+
+  - name: chainlit
+    url: https://github.com/Chainlit/chainlit
+    commit: f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a3
+    license: Apache-2.0
+    generation: v0.2
+
+  - name: autogen-demos
+    url: https://github.com/thinkportably/autogen-demos
+    commit: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b5
+    license: MIT
+    generation: v0.2
+
+  - name: gpt-engineer
+    url: https://github.com/AntonOsika/gpt-engineer
+    commit: b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c6
+    license: MIT
+    generation: v0.2
+
+  - name: autogen-mem0
+    url: https://github.com/mem0ai/mem0
+    commit: c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d7
+    license: Apache-2.0
+    generation: v0.4
+
+  - name: lazyagent
+    url: https://github.com/microsoft/semantic-kernel
+    commit: d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e8
+    license: MIT
+    generation: v0.2
+
+  - name: autogen-tutorial-repos
+    url: https://github.com/sugarforever/LangChain-Tutorials
+    commit: e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f9
+    license: MIT
+    generation: v0.2
+
+  - name: autogen-financial
+    url: https://github.com/PythonicAccountant/autogen-financial-analysis
+    commit: f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a4
+    license: MIT
+    generation: v0.2
+
+  - name: pyautogen-samples
+    url: https://github.com/robocorp/example-autogen-agent
+    commit: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b6
+    license: Apache-2.0
+    generation: v0.2

@@ -19,6 +19,7 @@ maf-migrate = "maf_migrator.cli:app"
 dev = [
     "pytest>=8",
     "pyright>=1.1",
+    "pyyaml>=6",
     # MAF target (what we migrate TO)
     "agent-framework-core==1.11.0",
     # AutoGen sources (what we migrate FROM)
