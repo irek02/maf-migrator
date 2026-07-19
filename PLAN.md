@@ -1,7 +1,7 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 0 (scaffold + harness + corpus) — nothing built yet; next item is 0.1.
-**Last updated:** 2026-07-18 (by Irek)
+**Status:** Phase 0 (scaffold + harness + corpus) — scaffold done; next item is 0.2.
+**Last updated:** 2026-07-19 (by agent)
 **Waiting on Irek:** nothing — build server token granted repo access 2026-07-18; builder
 fully unblocked through gate 1.5.
 
@@ -50,11 +50,14 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
 
 ### Phase 0 — scaffold, harness, corpus
 
-- [ ] [agent] 0.1 Package scaffold: `pyproject.toml` (package `maf_migrator`, console
+- [x] [agent] 0.1 Package scaffold: `pyproject.toml` (package `maf_migrator`, console
       script `maf-migrate`, minimal deps: `libcst`, `typer` or argparse — builder's call,
       recorded in the log), `pytest` wired with one integrated smoke test
       (`maf-migrate --version` exits 0), README stub, this .gitignore kept intact.
       Acceptance tests: none yet (day zero) — the smoke test is written as part of this item.
+      (done 2026-07-19, awaiting manual verification)
+      Manual test: `pip install -e . && maf-migrate --version` — should print `maf-migrate 0.1.0` and exit 0.
+      CLI framework chosen: `typer` (clean declarative API, rich help output).
 - [ ] [agent] 0.2 Pin the target: identify the real MAF Python package(s) on PyPI (verify
       names/versions against PyPI + the official repo — **check against source, not blog
       posts**), pin them and the AutoGen packages (`autogen-agentchat` 0.4.x line, legacy
@@ -199,3 +202,4 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
 - 2026-07-18 — Plan written (Irek + Claude planning session). Repo created empty; corpus
   availability verified live (94 unique repos in first 100 code hits for v0.4 imports;
   ~1,584 legacy hits). Next: builder starts at 0.1.
+- 2026-07-19 — 0.1 done: pyproject.toml (setuptools.build_meta, src layout), `maf_migrator` package with `maf-migrate` console script, `typer` CLI with `--version`, integrated smoke test (`maf-migrate --version` exits 0 and prints version). pytest 1/1. Next: 0.2 (pin MAF + AutoGen package targets).

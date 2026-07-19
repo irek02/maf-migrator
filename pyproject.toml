@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maf-migrator"
+version = "0.1.0"
+description = "Codemod to migrate AutoGen Python codebases to Microsoft Agent Framework"
+requires-python = ">=3.10"
+dependencies = [
+    "libcst>=1.1",
+    "typer>=0.12",
+]
+
+[project.scripts]
+maf-migrate = "maf_migrator.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pyright>=1.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
