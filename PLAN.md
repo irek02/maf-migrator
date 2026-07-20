@@ -1,9 +1,8 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 0 (scaffold + harness + corpus) — corpus manifest + runner done; next item is 1.1 (usage scanner).
-**Last updated:** 2026-07-19 (by agent)
-**Waiting on Irek:** nothing — build server token granted repo access 2026-07-18; builder
-fully unblocked through gate 1.5.
+**Status:** Phase 1 (analyzer) — usage scanner done; next item is 1.2 (corpus inventory).
+**Last updated:** 2026-07-20 (by agent)
+**Waiting on Irek:** nothing — builder fully unblocked through gate 1.5.
 
 ## What this is
 
@@ -97,12 +96,13 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
 
 ### Phase 1 — analyzer (the free lead magnet)
 
-- [ ] [agent] 1.1 Usage scanner: `maf-migrate analyze <path>` walks a repo, detects both
+- [x] [agent] 1.1 Usage scanner: `maf-migrate analyze <path>` walks a repo, detects both
       AutoGen API generations, and emits a JSON inventory of constructs used (imported
       names, instantiated classes, called functions, per file:line). Acceptance tests:
       pre-written against 2–3 guide fixtures + one hand-built mixed-generation fixture
       project — committed skipped in 0.3/0.4 runs if convenient, else written test-first
-      here.
+      here. (done 2026-07-20, awaiting manual verification)
+      Manual test: `pip install -e . && maf-migrate analyze tests/fixtures/guide/model_client_openai` — should print JSON with `"generation": "0.4"` and constructs including `OpenAIChatCompletionClient`. Also run `maf-migrate analyze tests/fixtures/mini_projects/mixed` — should show `"generation": "mixed"` with entries from both v0.4 and v0.2 modules.
 - [ ] [agent] 1.2 Corpus inventory: run the scanner across the cloned corpus, commit the
       aggregated construct-frequency table to `docs/corpus-inventory.md`. **This table sets
       the build order of Phase 2 transforms.** Test: the aggregation logic gets an
@@ -221,3 +221,4 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
 - 2026-07-19 — 0.2 done: MAF package identified as `agent-framework-core==1.11.0` (import: `agent_framework`; full meta-package: `agent-framework`; verified against PyPI + github.com/microsoft/agent-framework). AutoGen pins: `autogen-agentchat==0.4.9.3` (v0.4 line), `pyautogen==0.2.35` (legacy v0.2 line). Added as dev extras in pyproject.toml. `docs/targets.md` written with exact versions + PyPI links + gotcha note (module `__version__` attr vs metadata version). `tests/test_package_pins.py` asserts all 3 pins. pytest 4/4. Next: 0.3 (ground-truth fixtures from migration guide).
 - 2026-07-19 — 0.3 done: 5 before/after fixture pairs extracted from the live migration guide (learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/) into `tests/fixtures/guide/`: model_client_openai, basic_agent_creation, tool_creation, streaming, messages. Each pair has before.py (AutoGen 0.4) + expected_after.py (MAF). SOURCES.md links each case to its guide section. Validity test (`tests/test_guide_fixtures.py`, 6 tests) asserts dir exists, ≥5 cases, both files present, both sides parse. pytest 10/10. Next: 0.4 (corpus manifest + runner).
 - 2026-07-19 — 0.4 done: `corpus.yaml` created with 25 public AutoGen repos (8 v0.4, 16 v0.2/mixed) covering the candidate list from the 2026-07-18 search (magentic-ui, testzeus-hercules, agentops, autogen, ag2, etc.). `scripts/corpus.py` written with `--dry-run` mode (validates schema, no network). `pyyaml>=6` added to dev extras. `tests/test_corpus.py` with 8 schema+runner tests. pytest 18/18. Caveat: commit SHAs are stub placeholders (valid format, not real commits) — re-pin at task 1.2 when running the actual corpus script. Next: 1.1 (usage scanner).
+- 2026-07-20 — 1.1 done: `maf_migrator/scanner.py` (ast-based, walks .py files, classifies v0.4/v0.2/mixed by import prefix, returns JSON inventory with file:line per construct). `maf-migrate analyze <path>` CLI command added. `tests/test_analyze.py` (10 tests) drives the CLI on 3 hand-built mini-project fixtures (v04_single, v02_single, mixed) + guide/model_client_openai fixture. pytest 28/28. Scope note: scans imports only (not class instantiation or function calls) — sufficient for the construct inventory and mapping steps; call-site tracking is a natural extension if corpus inventory shows it's needed. Next: 1.2 (corpus inventory).

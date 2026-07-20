@@ -1,5 +1,9 @@
+from pathlib import Path
+
 import typer
+
 from maf_migrator import __version__
+from maf_migrator.scanner import scan_to_json
 
 app = typer.Typer(help="Migrate AutoGen Python codebases to Microsoft Agent Framework.")
 
@@ -21,3 +25,14 @@ def main(
     ),
 ) -> None:
     pass
+
+
+@app.command()
+def analyze(
+    path: Path = typer.Argument(..., help="Path to the repo or directory to scan."),
+) -> None:
+    """Scan a repo for AutoGen API usage and emit a JSON inventory."""
+    if not path.exists():
+        typer.echo(f"Error: path does not exist: {path}", err=True)
+        raise typer.Exit(1)
+    typer.echo(scan_to_json(path))
