@@ -36,6 +36,8 @@ def _classify_module(module: str) -> str | None:
 def _scan_file(path: Path) -> list[dict]:
     """Return construct entries from a single Python file."""
     try:
+        if not path.is_file():
+            return []
         source = path.read_text(encoding="utf-8", errors="replace")
         tree = ast.parse(source, filename=str(path))
     except SyntaxError:

@@ -1,6 +1,6 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 1 (analyzer) — usage scanner done; next item is 1.2 (corpus inventory).
+**Status:** Phase 1 (analyzer) — corpus inventory done; next item is 1.3 (mapping knowledge base).
 **Last updated:** 2026-07-20 (by agent)
 **Waiting on Irek:** nothing — builder fully unblocked through gate 1.5.
 
@@ -103,11 +103,13 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       project — committed skipped in 0.3/0.4 runs if convenient, else written test-first
       here. (done 2026-07-20, awaiting manual verification)
       Manual test: `pip install -e . && maf-migrate analyze tests/fixtures/guide/model_client_openai` — should print JSON with `"generation": "0.4"` and constructs including `OpenAIChatCompletionClient`. Also run `maf-migrate analyze tests/fixtures/mini_projects/mixed` — should show `"generation": "mixed"` with entries from both v0.4 and v0.2 modules.
-- [ ] [agent] 1.2 Corpus inventory: run the scanner across the cloned corpus, commit the
+- [x] [agent] 1.2 Corpus inventory: run the scanner across the cloned corpus, commit the
       aggregated construct-frequency table to `docs/corpus-inventory.md`. **This table sets
       the build order of Phase 2 transforms.** Test: the aggregation logic gets an
       integrated test on two fixture repos; the corpus numbers themselves are scoreboard,
-      not CI.
+      not CI. (done 2026-07-20, awaiting manual verification)
+      Manual test: `maf-migrate inventory tests/fixtures/mini_projects/v04_single tests/fixtures/mini_projects/mixed` — should print JSON with `repos_analyzed: 2` and `AssistantAgent` from `autogen_agentchat.agents` with `repo_count: 2`. Also check `docs/corpus-inventory.md` exists and has the frequency table (396 unique constructs across 17 repos). Top constructs should be `AssistantAgent` and `RoundRobinGroupChat` from v0.4.
+      Corpus note: 17 of 25 repos cloned successfully (8 failed — likely private or auth-gated); corpus.yaml updated with real HEADs. Scanner fix: skips non-file paths (one corpus repo had a dir named `*.py`). pytest.ini testpaths set to `tests/` so corpus tests don't bleed in.
 - [ ] [agent] 1.3 Mapping knowledge base: `maf_migrator/mappings.yaml` — each known AutoGen
       construct → MAF equivalent + status (`auto` / `partial` / `manual` / `unknown`) +
       guide link, sourced from the migration guide. Destination-neutral note field for
@@ -222,3 +224,4 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
 - 2026-07-19 — 0.3 done: 5 before/after fixture pairs extracted from the live migration guide (learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/) into `tests/fixtures/guide/`: model_client_openai, basic_agent_creation, tool_creation, streaming, messages. Each pair has before.py (AutoGen 0.4) + expected_after.py (MAF). SOURCES.md links each case to its guide section. Validity test (`tests/test_guide_fixtures.py`, 6 tests) asserts dir exists, ≥5 cases, both files present, both sides parse. pytest 10/10. Next: 0.4 (corpus manifest + runner).
 - 2026-07-19 — 0.4 done: `corpus.yaml` created with 25 public AutoGen repos (8 v0.4, 16 v0.2/mixed) covering the candidate list from the 2026-07-18 search (magentic-ui, testzeus-hercules, agentops, autogen, ag2, etc.). `scripts/corpus.py` written with `--dry-run` mode (validates schema, no network). `pyyaml>=6` added to dev extras. `tests/test_corpus.py` with 8 schema+runner tests. pytest 18/18. Caveat: commit SHAs are stub placeholders (valid format, not real commits) — re-pin at task 1.2 when running the actual corpus script. Next: 1.1 (usage scanner).
 - 2026-07-20 — 1.1 done: `maf_migrator/scanner.py` (ast-based, walks .py files, classifies v0.4/v0.2/mixed by import prefix, returns JSON inventory with file:line per construct). `maf-migrate analyze <path>` CLI command added. `tests/test_analyze.py` (10 tests) drives the CLI on 3 hand-built mini-project fixtures (v04_single, v02_single, mixed) + guide/model_client_openai fixture. pytest 28/28. Scope note: scans imports only (not class instantiation or function calls) — sufficient for the construct inventory and mapping steps; call-site tracking is a natural extension if corpus inventory shows it's needed. Next: 1.2 (corpus inventory).
+- 2026-07-20 — 1.2 done: `maf_migrator/aggregator.py` (cross-repo construct-frequency aggregator: scans each dir, deduplicates within repo, counts how many repos import each (name, module) pair, sorts by frequency). `maf-migrate inventory <paths...> [--output <file>]` CLI command added — JSON to stdout, Markdown to --output. `tests/test_inventory.py` (9 tests) drives CLI on v04_single + mixed fixtures; confirms AssistantAgent from autogen_agentchat.agents has repo_count=2 (both fixture repos). `scripts/corpus.py --repin` added: shallow-clones to HEAD, captures real SHAs, updates corpus.yaml. Actually cloned 17 of 25 repos (8 auth-failed — likely private/restricted URLs in manifest); ran `maf-migrate inventory corpus/* --output docs/corpus-inventory.md`: 396 unique constructs across 17 repos. Top constructs: `AssistantAgent` (autogen_agentchat.agents, 3 repos), `RoundRobinGroupChat` (autogen_agentchat.teams, 3 repos), `UserProxyAgent` (autogen, 2 repos). Also: scanner bugfix (skip non-file .py paths — one corpus repo had a dir named *.py); `[tool.pytest.ini_options] testpaths = ["tests"]` added to pyproject.toml (corpus test files were bleeding into suite). pytest 37/37. Next: 1.3 (mapping knowledge base).

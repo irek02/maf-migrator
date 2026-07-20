@@ -2,8 +2,9 @@
 """Corpus runner: clone and manage AutoGen benchmark repos.
 
 Usage:
-  python scripts/corpus.py            # clone all repos to corpus/
+  python scripts/corpus.py            # clone all repos to corpus/ (checks out pinned commit)
   python scripts/corpus.py --dry-run  # validate manifest, no cloning
+  python scripts/corpus.py --repin    # shallow-clone to HEAD, capture real SHAs, update corpus.yaml
 """
 import argparse
 import re
@@ -57,6 +58,11 @@ def main():
         action="store_true",
         help="Validate manifest and print what would be cloned; no network calls.",
     )
+    parser.add_argument(
+        "--repin",
+        action="store_true",
+        help="Shallow-clone each repo to HEAD, capture real SHAs, update corpus.yaml.",
+    )
     args = parser.parse_args()
 
     manifest = load_manifest()
@@ -76,6 +82,41 @@ def main():
         return
 
     CORPUS_DIR.mkdir(exist_ok=True)
+
+    if args.repin:
+        updated = False
+        for r in repos:
+            dest = CORPUS_DIR / r["name"]
+            if dest.exists():
+                print(f"  already cloned: {r['name']} — re-reading HEAD SHA")
+            else:
+                print(f"  shallow-cloning {r['name']} ...")
+                result = subprocess.run(
+                    ["git", "clone", "--depth=1", "--filter=blob:none", r["url"], str(dest)],
+                    capture_output=True, text=True,
+                )
+                if result.returncode != 0:
+                    print(f"  WARN: clone failed for {r['name']}: {result.stderr.strip()}", file=sys.stderr)
+                    continue
+            sha_result = subprocess.run(
+                ["git", "-C", str(dest), "rev-parse", "HEAD"],
+                capture_output=True, text=True,
+            )
+            if sha_result.returncode != 0:
+                print(f"  WARN: could not get HEAD SHA for {r['name']}", file=sys.stderr)
+                continue
+            real_sha = sha_result.stdout.strip()
+            if r["commit"] != real_sha:
+                r["commit"] = real_sha
+                updated = True
+            print(f"  {r['name']}: {real_sha}")
+        if updated:
+            with open(CORPUS_YAML, "w") as f:
+                yaml.dump(manifest, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+            print(f"corpus.yaml updated with real SHAs.")
+        print(f"Corpus ready: {CORPUS_DIR}")
+        return
+
     for r in repos:
         dest = CORPUS_DIR / r["name"]
         if dest.exists():
