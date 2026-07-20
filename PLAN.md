@@ -1,8 +1,8 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 1 (analyzer) — GATE 1.5 PASSED (conditional, 2026-07-20). Next builder items: 1.5a (mapping coverage) then 1.5b (corpus integrity), both before Phase 2.
+**Status:** Phase 1 (analyzer) — GATE 1.5 PASSED (conditional, 2026-07-20). Next builder items: 1.5a (mapping coverage) then 1.5b (corpus integrity), then ⛔ GATE 1.6 (Irek kill-gate) before Phase 2.
 **Last updated:** 2026-07-20 (by agent)
-**Waiting on Irek:** nothing — Phase 2 unblocked once 1.5a/1.5b land.
+**Waiting on Irek:** GATE 1.6 (after 1.5a/1.5b land) — re-verify the analyzer's UNKNOWN rate actually dropped; kill-gate for the bet's core premise.
 
 ## What this is
 
@@ -163,6 +163,17 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       and rewrite `docs/corpus-inventory.md`; note the corrected Phase 2 build order in the
       log. Test: same as 1.2 — aggregation logic on fixtures is the CI gate, corpus numbers
       are scoreboard.
+- [ ] ⛔ GATE 1.6 [IREK] **Kill-gate — is the core hypothesis alive?** After 1.5a/1.5b,
+      re-run `maf-migrate analyze` on the same 3 real repos from GATE 1.5 (gpt-researcher,
+      autogen `agentchat_chess_game`, autogen `python/samples`) and compare the UNKNOWN rate
+      against the gate-1.5 baseline (89% unknown on `python/samples`). Verdict required:
+      does the analyzer now confidently identify most of the top-frequency v0.4 constructs
+      it finds — i.e. is this a useful lead magnet, not a shrug? If YES → proceed to Phase 2.
+      If NO → **the bet's premise (auto-identifying convertible code) is unproven; stop and
+      reconsider killing bet-02 before pouring effort into 10 transforms + a runner.** Record
+      the before/after UNKNOWN numbers and the verdict in the log. Rationale: this checkpoint
+      exists because GATE 1.5 tested report *format*, not usefulness; without it the next
+      human stop is GATE 3.3, ~14 builder items away, far too late to catch a dead premise.
 
 ### Phase 2 — transforms (0.4→MAF first, corpus-frequency order)
 
