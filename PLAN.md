@@ -1,8 +1,8 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 1 (analyzer) — report generator done; next is GATE 1.5 (Irek to verify report quality on real corpus repos).
+**Status:** Phase 1 (analyzer) — GATE 1.5 PASSED (conditional, 2026-07-20). Next builder items: 1.5a (mapping coverage) then 1.5b (corpus integrity), both before Phase 2.
 **Last updated:** 2026-07-20 (by agent)
-**Waiting on Irek:** GATE 1.5 — run `maf-migrate analyze` on 3 corpus repos and verdict whether the report is lead-magnet quality. Record verdict + nits in the log.
+**Waiting on Irek:** nothing — Phase 2 unblocked once 1.5a/1.5b land.
 
 ## What this is
 
@@ -136,9 +136,33 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       and confirm ConversableAgent appears under MANUAL and the AG2 alternative note is present.
       `maf-migrate analyze --json tests/fixtures/mini_projects/v04_single` — should print
       raw JSON as before. `python3 -m pytest tests/test_report.py -v` — all 12 tests pass.
-- [ ] ⛔ GATE 1.5 [IREK] Run `maf-migrate analyze` on 3 corpus repos. Verdict required:
+- [x] ⛔ GATE 1.5 [IREK] Run `maf-migrate analyze` on 3 corpus repos. Verdict required:
       would *you* trust this report if you owned the repo? Is it lead-magnet quality?
       Record verdict + nits in the log; nits become checklist items.
+      (PASSED conditional 2026-07-20 — format is lead-magnet quality; two nits below
+      must land before Phase 2. See Build log 2026-07-20 GATE 1.5.)
+- [ ] [agent] 1.5a Mapping coverage: cut the UNKNOWN rate on real v0.4 code (89% unknown
+      on the microsoft/autogen `python/samples` corpus at gate time). Expand
+      `mappings.yaml` to cover the high-frequency constructs currently landing in UNKNOWN
+      — priority order: `autogen_core.models` (ChatCompletionClient & friends),
+      `autogen_core.model_context` (BufferedChatCompletionContext), teams/group-chat
+      (RoundRobinGroupChat, SelectorGroupChat), termination conditions, `autogen_agentchat.ui`
+      (Console). Each new entry sourced from the migration guide / MAF source (not memory);
+      where MAF has no equivalent, an explicit `unknown`/`manual` entry with a *reason* is
+      still an improvement over a bare "not in mapping database". Acceptance test: add a
+      fixture project exercising these constructs and assert each is now classified (not
+      UNKNOWN) with the right status; keep existing schema/coverage tests green.
+- [ ] [agent] 1.5b Corpus integrity: the gate found `corpus.yaml` pins are unreliable —
+      magentic-ui's pin has zero AutoGen (only a false-positive `alembic.autogenerate`),
+      and ag2 / taskweaver / agentscope / semantic-kernel / microsoft-autogen are the
+      *frameworks themselves* (they define the API, not consume it). This skews 1.2's
+      inventory, which sets Phase 2 build order. Re-audit `corpus.yaml`: drop
+      framework-defining repos, drop stub-SHA/404 entries (ai-book-writer 404s), and prefer
+      genuine consumer code (microsoft/autogen `python/samples` is a solid v0.4 consumer
+      set — 59 files, 62 constructs). Re-run `maf-migrate inventory` over the cleaned corpus
+      and rewrite `docs/corpus-inventory.md`; note the corrected Phase 2 build order in the
+      log. Test: same as 1.2 — aggregation logic on fixtures is the CI gate, corpus numbers
+      are scoreboard.
 
 ### Phase 2 — transforms (0.4→MAF first, corpus-frequency order)
 
@@ -241,4 +265,18 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
 - 2026-07-20 — 1.1 done: `maf_migrator/scanner.py` (ast-based, walks .py files, classifies v0.4/v0.2/mixed by import prefix, returns JSON inventory with file:line per construct). `maf-migrate analyze <path>` CLI command added. `tests/test_analyze.py` (10 tests) drives the CLI on 3 hand-built mini-project fixtures (v04_single, v02_single, mixed) + guide/model_client_openai fixture. pytest 28/28. Scope note: scans imports only (not class instantiation or function calls) — sufficient for the construct inventory and mapping steps; call-site tracking is a natural extension if corpus inventory shows it's needed. Next: 1.2 (corpus inventory).
 - 2026-07-20 — 1.2 done: `maf_migrator/aggregator.py` (cross-repo construct-frequency aggregator: scans each dir, deduplicates within repo, counts how many repos import each (name, module) pair, sorts by frequency). `maf-migrate inventory <paths...> [--output <file>]` CLI command added — JSON to stdout, Markdown to --output. `tests/test_inventory.py` (9 tests) drives CLI on v04_single + mixed fixtures; confirms AssistantAgent from autogen_agentchat.agents has repo_count=2 (both fixture repos). `scripts/corpus.py --repin` added: shallow-clones to HEAD, captures real SHAs, updates corpus.yaml. Actually cloned 17 of 25 repos (8 auth-failed — likely private/restricted URLs in manifest); ran `maf-migrate inventory corpus/* --output docs/corpus-inventory.md`: 396 unique constructs across 17 repos. Top constructs: `AssistantAgent` (autogen_agentchat.agents, 3 repos), `RoundRobinGroupChat` (autogen_agentchat.teams, 3 repos), `UserProxyAgent` (autogen, 2 repos). Also: scanner bugfix (skip non-file .py paths — one corpus repo had a dir named *.py); `[tool.pytest.ini_options] testpaths = ["tests"]` added to pyproject.toml (corpus test files were bleeding into suite). pytest 37/37. Next: 1.3 (mapping knowledge base).
 - 2026-07-20 — 1.3 done: `src/maf_migrator/mappings.yaml` created — 44 entries covering all 9 AutoGen constructs in the guide fixtures plus 35 corpus constructs from the top-frequency inventory. Each entry has name, module, generation, status (auto/partial/manual/unknown), maf_equivalent (where applicable), guide_link, ag2_note (for constructs where AG2 is a plausible alternative), and notes. Status breakdown: 5 auto (OpenAIChatCompletionClient, AssistantAgent v0.4, FunctionTool, TextMessage, TaskResult/streaming), 3 partial (AzureOpenAIChatCompletionClient, MultiModalMessage, AssistantAgent v0.2), 5 manual (UserProxyAgent, ConversableAgent, autogen bare module, LLMConfig, stream events), 31 unknown (unconfirmed MAF equivalents — flagged for report). `tests/test_mappings.py` (8 tests): schema validation, required fields, status values, generation values, guide fixture coverage, and auto-entries-have-maf-equivalent. pytest 45/45. Next: 1.4 (report generator).
+- 2026-07-20 — GATE 1.5 PASSED (conditional; Irek's verdict, run with Claude). Ran
+  `maf-migrate analyze` on 3 real repos: gpt-researcher (v0.2, 274 files → 4 constructs:
+  0 auto / 2 manual / 2 unknown), microsoft/autogen `agentchat_chess_game` (v0.4, 1 file →
+  5 constructs: 2 auto / 3 unknown), and microsoft/autogen `python/samples` (v0.4, 59 files
+  → 62 constructs: 4 auto / 1 partial / 2 manual / **55 unknown = 89%**). Verdict: report
+  *format* is lead-magnet quality — engineer-readable, honest effort bands, real
+  param→param gotchas, destination-neutral AG2 note. Two nits block Phase 2 (now items
+  1.5a/1.5b): (1) mapping coverage is too thin — ~90% of a broad real v0.4 codebase lands in
+  UNKNOWN, including genuinely common constructs; (2) corpus integrity — `corpus.yaml` pins
+  are unreliable: magentic-ui's pin has no AutoGen (false-positive `alembic.autogenerate`),
+  and ag2/taskweaver/agentscope/semantic-kernel/microsoft-autogen are the frameworks
+  themselves, not consumers — so 1.2's 396-construct inventory (which sets Phase 2 order) is
+  inflated/skewed. Reliable v0.4 consumer corpus found: microsoft/autogen `python/samples`.
+  Next: 1.5a (mappings), then 1.5b (corpus), then Phase 2.
 - 2026-07-20 — 1.4 done: `src/maf_migrator/reporter.py` — takes scan output + mappings.yaml, deduplicates constructs by (name, module), annotates each with status/MAF equivalent/notes from mappings, groups by status (auto/partial/manual/unknown), renders a Markdown report with SUMMARY table, CONSTRUCTS section grouped by effort band, and DESTINATION NOTE (AG2 alternative when relevant). `maf-migrate analyze` default output is now the human-readable report; `--json` flag preserves raw JSON for backward compat; `--output` writes to file. `tests/test_analyze.py` updated to pass `--json`. `tests/test_report.py` (12 tests): 2 golden-file snapshots + 10 structural/behavior assertions. pytest 57/57. Next: GATE 1.5 — needs Irek to run analyze on 3 corpus repos and confirm report is lead-magnet quality.
