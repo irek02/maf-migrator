@@ -171,7 +171,16 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       it finds — i.e. is this a useful lead magnet, not a shrug? If YES → proceed to Phase 2.
       If NO → **the bet's premise (auto-identifying convertible code) is unproven; stop and
       reconsider killing bet-02 before pouring effort into 10 transforms + a runner.** Record
-      the before/after UNKNOWN numbers and the verdict in the log. Rationale: this checkpoint
+      the before/after UNKNOWN numbers and the verdict in the log.
+      **Anti-gaming — how to judge, because 1.5a/1.5b are the builder grading its own
+      homework off the same migration guide:** the pass bar is *"confidently identifies
+      convertible constructs,"* NOT *"wrote more YAML entries"* or *"the UNKNOWN bucket is
+      smaller."* A construct only counts toward the improvement if it moved into `auto` or
+      `partial` with a real, guide-backed MAF equivalent that Irek can eyeball and believe.
+      Reclassifying constructs from `unknown` into `manual`/`unknown-with-a-reason` does NOT
+      count — that is relabeling, not conversion, and if the coverage "gain" is mostly that,
+      treat it as a NO. Check the actual mappings.yaml diff and spot-check a few entries
+      against the guide, don't just trust the summary counts. Rationale: this checkpoint
       exists because GATE 1.5 tested report *format*, not usefulness; without it the next
       human stop is GATE 3.3, ~14 builder items away, far too late to catch a dead premise.
 
