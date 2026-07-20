@@ -1,0 +1,56 @@
+# MAF Migration Report — mixed
+
+Files scanned: 2  |  AutoGen generation: mixed
+
+## SUMMARY
+
+  Total unique constructs: 4
+
+  ✓ AUTO          2  constructs  (low — mechanical rename)
+  ~ PARTIAL       0  constructs  (medium — config/param changes needed)
+  ✗ MANUAL        1  construct  (high — pattern rewrite required)
+  ? UNKNOWN       1  construct  (unknown — not in mapping database)
+
+## CONSTRUCTS
+
+### ✓ AUTO — low effort (mechanical rename)
+
+  AssistantAgent                            
+    from autogen_agentchat.agents
+    →  Agent (agent_framework)
+    Note: model_client= → client=; system_message= → instructions=;
+          max_tool_iterations= dropped (MAF handles loop termination
+          differently). FunctionTool wrappers become @tool-decorated functions
+          passed directly.
+
+  TextMessage                               
+    from autogen_agentchat.messages
+    →  Message (agent_framework)
+    Note: TextMessage(content=..., source=...) → Message(role=...,
+          contents=[...]). source= string maps to role=; content string becomes a
+          single-item list.
+
+### ✗ MANUAL — high effort (pattern rewrite required)
+
+  ConversableAgent                          
+    from autogen
+    →  (no direct MAF equivalent)
+    Note: Base class for 0.2 agents. No direct MAF mapping — subclasses typically
+          map to Agent with instructions= and tools=; override logic must be
+          refactored manually.
+
+### ? UNKNOWN — not in mapping database
+
+  AssistantAgent                            
+    from pyautogen
+    →  (no direct MAF equivalent)
+
+## DESTINATION NOTE
+
+This report targets Microsoft Agent Framework (MAF) as the migration destination.
+
+AG2 alternative: some constructs in this project are marked AG2-compatible —
+AG2 preserves more of the original AutoGen API surface and may be a lower-effort
+target if your team is not committed to MAF. See construct notes above (ag2_note).
+
+Run `maf-migrate run <path>` to apply AUTO transforms automatically (pro tier).

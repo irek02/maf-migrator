@@ -14,9 +14,9 @@ GUIDE = Path(__file__).parent / "fixtures" / "guide"
 
 
 def _analyze(path: Path) -> dict:
-    """Run `maf-migrate analyze <path>` and return parsed JSON stdout."""
+    """Run `maf-migrate analyze --json <path>` and return parsed JSON stdout."""
     result = subprocess.run(
-        ["maf-migrate", "analyze", str(path)],
+        ["maf-migrate", "analyze", "--json", str(path)],
         capture_output=True,
         text=True,
     )

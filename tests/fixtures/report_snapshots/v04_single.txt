@@ -1,0 +1,40 @@
+# MAF Migration Report — v04_single
+
+Files scanned: 1  |  AutoGen generation: 0.4
+
+## SUMMARY
+
+  Total unique constructs: 2
+
+  ✓ AUTO          2  constructs  (low — mechanical rename)
+  ~ PARTIAL       0  constructs  (medium — config/param changes needed)
+  ✗ MANUAL        0  constructs  (high — pattern rewrite required)
+  ? UNKNOWN       0  constructs  (unknown — not in mapping database)
+
+## CONSTRUCTS
+
+### ✓ AUTO — low effort (mechanical rename)
+
+  AssistantAgent                            
+    from autogen_agentchat.agents
+    →  Agent (agent_framework)
+    Note: model_client= → client=; system_message= → instructions=;
+          max_tool_iterations= dropped (MAF handles loop termination
+          differently). FunctionTool wrappers become @tool-decorated functions
+          passed directly.
+
+  OpenAIChatCompletionClient                
+    from autogen_ext.models.openai
+    →  OpenAIChatCompletionClient (agent_framework.openai)
+    Note: Same class name, different import path. API key is read from
+          environment (OPENAI_API_KEY) by default — drop explicit api_key= arg.
+
+## DESTINATION NOTE
+
+This report targets Microsoft Agent Framework (MAF) as the migration destination.
+
+AG2 alternative: some constructs in this project are marked AG2-compatible —
+AG2 preserves more of the original AutoGen API surface and may be a lower-effort
+target if your team is not committed to MAF. See construct notes above (ag2_note).
+
+Run `maf-migrate run <path>` to apply AUTO transforms automatically (pro tier).

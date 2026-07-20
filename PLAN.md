@@ -1,8 +1,8 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 1 (analyzer) — mapping knowledge base done; next item is 1.4 (report generator).
+**Status:** Phase 1 (analyzer) — report generator done; next is GATE 1.5 (Irek to verify report quality on real corpus repos).
 **Last updated:** 2026-07-20 (by agent)
-**Waiting on Irek:** nothing — builder fully unblocked through gate 1.5.
+**Waiting on Irek:** GATE 1.5 — run `maf-migrate analyze` on 3 corpus repos and verdict whether the report is lead-magnet quality. Record verdict + nits in the log.
 
 ## What this is
 
@@ -122,12 +122,20 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       FunctionTool, message types, TaskResult) with correct status values (auto/partial/manual).
       Coverage: 44 entries covering all 9 unique constructs from guide before.py files,
       plus 35 corpus constructs from the top-frequency inventory.
-- [ ] [agent] 1.4 Report generator: `maf-migrate analyze` renders a human-readable
+- [x] [agent] 1.4 Report generator: `maf-migrate analyze` renders a human-readable
       migration report (terminal + `--output report.md`): per-construct mapping status,
       counts, effort estimate bands, honest "unknown" section, one-line destination-neutral
       framing (MAF vs AG2). This report is the product's marketing asset — write it for a
       stressed engineer, not a parser. Acceptance tests: golden-file report snapshots for
       two fixture projects.
+      (done 2026-07-20, awaiting manual verification)
+      Manual test: `maf-migrate analyze tests/fixtures/mini_projects/v04_single` — should
+      print a human-readable Markdown report with SUMMARY, CONSTRUCTS, and DESTINATION NOTE
+      sections. `maf-migrate analyze tests/fixtures/mini_projects/mixed --output /tmp/report.md`
+      — should write report.md and print "Wrote /tmp/report.md" to stderr; open /tmp/report.md
+      and confirm ConversableAgent appears under MANUAL and the AG2 alternative note is present.
+      `maf-migrate analyze --json tests/fixtures/mini_projects/v04_single` — should print
+      raw JSON as before. `python3 -m pytest tests/test_report.py -v` — all 12 tests pass.
 - [ ] ⛔ GATE 1.5 [IREK] Run `maf-migrate analyze` on 3 corpus repos. Verdict required:
       would *you* trust this report if you owned the repo? Is it lead-magnet quality?
       Record verdict + nits in the log; nits become checklist items.
@@ -233,3 +241,4 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
 - 2026-07-20 — 1.1 done: `maf_migrator/scanner.py` (ast-based, walks .py files, classifies v0.4/v0.2/mixed by import prefix, returns JSON inventory with file:line per construct). `maf-migrate analyze <path>` CLI command added. `tests/test_analyze.py` (10 tests) drives the CLI on 3 hand-built mini-project fixtures (v04_single, v02_single, mixed) + guide/model_client_openai fixture. pytest 28/28. Scope note: scans imports only (not class instantiation or function calls) — sufficient for the construct inventory and mapping steps; call-site tracking is a natural extension if corpus inventory shows it's needed. Next: 1.2 (corpus inventory).
 - 2026-07-20 — 1.2 done: `maf_migrator/aggregator.py` (cross-repo construct-frequency aggregator: scans each dir, deduplicates within repo, counts how many repos import each (name, module) pair, sorts by frequency). `maf-migrate inventory <paths...> [--output <file>]` CLI command added — JSON to stdout, Markdown to --output. `tests/test_inventory.py` (9 tests) drives CLI on v04_single + mixed fixtures; confirms AssistantAgent from autogen_agentchat.agents has repo_count=2 (both fixture repos). `scripts/corpus.py --repin` added: shallow-clones to HEAD, captures real SHAs, updates corpus.yaml. Actually cloned 17 of 25 repos (8 auth-failed — likely private/restricted URLs in manifest); ran `maf-migrate inventory corpus/* --output docs/corpus-inventory.md`: 396 unique constructs across 17 repos. Top constructs: `AssistantAgent` (autogen_agentchat.agents, 3 repos), `RoundRobinGroupChat` (autogen_agentchat.teams, 3 repos), `UserProxyAgent` (autogen, 2 repos). Also: scanner bugfix (skip non-file .py paths — one corpus repo had a dir named *.py); `[tool.pytest.ini_options] testpaths = ["tests"]` added to pyproject.toml (corpus test files were bleeding into suite). pytest 37/37. Next: 1.3 (mapping knowledge base).
 - 2026-07-20 — 1.3 done: `src/maf_migrator/mappings.yaml` created — 44 entries covering all 9 AutoGen constructs in the guide fixtures plus 35 corpus constructs from the top-frequency inventory. Each entry has name, module, generation, status (auto/partial/manual/unknown), maf_equivalent (where applicable), guide_link, ag2_note (for constructs where AG2 is a plausible alternative), and notes. Status breakdown: 5 auto (OpenAIChatCompletionClient, AssistantAgent v0.4, FunctionTool, TextMessage, TaskResult/streaming), 3 partial (AzureOpenAIChatCompletionClient, MultiModalMessage, AssistantAgent v0.2), 5 manual (UserProxyAgent, ConversableAgent, autogen bare module, LLMConfig, stream events), 31 unknown (unconfirmed MAF equivalents — flagged for report). `tests/test_mappings.py` (8 tests): schema validation, required fields, status values, generation values, guide fixture coverage, and auto-entries-have-maf-equivalent. pytest 45/45. Next: 1.4 (report generator).
+- 2026-07-20 — 1.4 done: `src/maf_migrator/reporter.py` — takes scan output + mappings.yaml, deduplicates constructs by (name, module), annotates each with status/MAF equivalent/notes from mappings, groups by status (auto/partial/manual/unknown), renders a Markdown report with SUMMARY table, CONSTRUCTS section grouped by effort band, and DESTINATION NOTE (AG2 alternative when relevant). `maf-migrate analyze` default output is now the human-readable report; `--json` flag preserves raw JSON for backward compat; `--output` writes to file. `tests/test_analyze.py` updated to pass `--json`. `tests/test_report.py` (12 tests): 2 golden-file snapshots + 10 structural/behavior assertions. pytest 57/57. Next: GATE 1.5 — needs Irek to run analyze on 3 corpus repos and confirm report is lead-magnet quality.
