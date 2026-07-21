@@ -1,7 +1,7 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 1 (analyzer) — GATE 1.5 PASSED (conditional, 2026-07-20). Next builder items: 1.5a (mapping coverage) then 1.5b (corpus integrity), then ⛔ GATE 1.6 (Irek kill-gate) before Phase 2.
-**Last updated:** 2026-07-20 (by agent)
+**Status:** Phase 1 (analyzer) — GATE 1.5 PASSED. 1.5a done (mapping coverage). Next: 1.5b (corpus integrity), then ⛔ GATE 1.6 (Irek kill-gate) before Phase 2.
+**Last updated:** 2026-07-21 (by agent)
 **Waiting on Irek:** GATE 1.6 (after 1.5a/1.5b land) — re-verify the analyzer's UNKNOWN rate actually dropped; kill-gate for the bet's core premise.
 
 ## What this is
@@ -141,7 +141,7 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       Record verdict + nits in the log; nits become checklist items.
       (PASSED conditional 2026-07-20 — format is lead-magnet quality; two nits below
       must land before Phase 2. See Build log 2026-07-20 GATE 1.5.)
-- [ ] [agent] 1.5a Mapping coverage: cut the UNKNOWN rate on real v0.4 code (89% unknown
+- [x] [agent] 1.5a Mapping coverage: cut the UNKNOWN rate on real v0.4 code (89% unknown
       on the microsoft/autogen `python/samples` corpus at gate time). Expand
       `mappings.yaml` to cover the high-frequency constructs currently landing in UNKNOWN
       — priority order: `autogen_core.models` (ChatCompletionClient & friends),
@@ -152,6 +152,13 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       still an improvement over a bare "not in mapping database". Acceptance test: add a
       fixture project exercising these constructs and assert each is now classified (not
       UNKNOWN) with the right status; keep existing schema/coverage tests green.
+      (done 2026-07-21, awaiting manual verification)
+      Manual test: `python3 -m pytest tests/test_mappings.py -v` — all 10 tests pass,
+      including test_1_5a_priority_constructs_classified and test_1_5a_multiagent_fixture_constructs_in_mappings.
+      Also run `maf-migrate analyze tests/fixtures/mini_projects/v04_multiagent` — report should show
+      RoundRobinGroupChat as MANUAL, MaxMessageTermination as PARTIAL (WorkflowBuilder max_iterations),
+      ChatCompletionClient/UserMessage/AssistantMessage/LLMMessage as PARTIAL (agent_framework.Message),
+      BufferedChatCompletionContext as MANUAL (SlidingWindowStrategy). No UNKNOWN entries for these constructs.
 - [ ] [agent] 1.5b Corpus integrity: the gate found `corpus.yaml` pins are unreliable —
       magentic-ui's pin has zero AutoGen (only a false-positive `alembic.autogenerate`),
       and ag2 / taskweaver / agentscope / semantic-kernel / microsoft-autogen are the
@@ -300,3 +307,5 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
   inflated/skewed. Reliable v0.4 consumer corpus found: microsoft/autogen `python/samples`.
   Next: 1.5a (mappings), then 1.5b (corpus), then Phase 2.
 - 2026-07-20 — 1.4 done: `src/maf_migrator/reporter.py` — takes scan output + mappings.yaml, deduplicates constructs by (name, module), annotates each with status/MAF equivalent/notes from mappings, groups by status (auto/partial/manual/unknown), renders a Markdown report with SUMMARY table, CONSTRUCTS section grouped by effort band, and DESTINATION NOTE (AG2 alternative when relevant). `maf-migrate analyze` default output is now the human-readable report; `--json` flag preserves raw JSON for backward compat; `--output` writes to file. `tests/test_analyze.py` updated to pass `--json`. `tests/test_report.py` (12 tests): 2 golden-file snapshots + 10 structural/behavior assertions. pytest 57/57. Next: GATE 1.5 — needs Irek to run analyze on 3 corpus repos and confirm report is lead-magnet quality.
+
+- 2026-07-21 — 1.5a done: expanded `mappings.yaml` from 44 to 56 entries. 10 priority constructs classified: RoundRobinGroupChat + SelectorGroupChat → manual (Workflow/WorkflowBuilder, pattern change); MaxMessageTermination → partial (WorkflowBuilder max_iterations=N param); TextMentionTermination + Console + BufferedChatCompletionContext → manual (no direct MAF equivalent, custom logic required); ChatCompletionClient → partial (BaseChatClient); UserMessage + AssistantMessage + LLMMessage → partial (Message with role=). New fixture tests/fixtures/mini_projects/v04_multiagent added. 2 new tests. pytest 59/59. Next: 1.5b (corpus integrity — re-audit corpus.yaml, drop framework-defining repos, re-run inventory).

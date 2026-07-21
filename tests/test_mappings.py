@@ -85,3 +85,52 @@ def test_auto_mappings_have_maf_equivalent():
             assert entry.get("maf_equivalent"), (
                 f"Entry {i} has status='auto' but no maf_equivalent: {entry}"
             )
+
+
+# ── 1.5a acceptance test ──────────────────────────────────────────────────────
+
+PRIORITY_CONSTRUCTS_1_5A = [
+    # (name, module) — these were all UNKNOWN at GATE 1.5 and must be classified after 1.5a
+    ("RoundRobinGroupChat", "autogen_agentchat.teams"),
+    ("SelectorGroupChat", "autogen_agentchat.teams"),
+    ("MaxMessageTermination", "autogen_agentchat.conditions"),
+    ("TextMentionTermination", "autogen_agentchat.conditions"),
+    ("Console", "autogen_agentchat.ui"),
+    ("ChatCompletionClient", "autogen_core.models"),
+    ("UserMessage", "autogen_core.models"),
+    ("AssistantMessage", "autogen_core.models"),
+    ("LLMMessage", "autogen_core.models"),
+    ("BufferedChatCompletionContext", "autogen_core.model_context"),
+]
+
+
+def test_1_5a_priority_constructs_classified():
+    """All priority-1.5a constructs must have a non-unknown status with a reason (notes field)."""
+    data = _load()
+    index = {(e["name"], e["module"]): e for e in data}
+
+    not_classified = []
+    for name, module in PRIORITY_CONSTRUCTS_1_5A:
+        entry = index.get((name, module))
+        if entry is None:
+            not_classified.append(f"MISSING: ({name}, {module})")
+        elif entry["status"] == "unknown":
+            not_classified.append(f"STILL UNKNOWN: ({name}, {module})")
+
+    assert not not_classified, (
+        "These 1.5a priority constructs are not yet classified:\n"
+        + "\n".join(not_classified)
+    )
+
+
+def test_1_5a_multiagent_fixture_constructs_in_mappings():
+    """All constructs from the v04_multiagent fixture must appear in mappings.yaml."""
+    data = _load()
+    covered = {(e["name"], e["module"]) for e in data}
+
+    fixture = Path(__file__).parent / "fixtures" / "mini_projects" / "v04_multiagent"
+    inventory = scan(fixture)
+    constructs = [(c["name"], c["module"]) for c in inventory["constructs"]]
+
+    missing = [c for c in constructs if c not in covered]
+    assert not missing, f"v04_multiagent fixture constructs missing from mappings.yaml: {missing}"

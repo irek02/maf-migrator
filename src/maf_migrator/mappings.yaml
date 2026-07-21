@@ -1,447 +1,393 @@
-# AutoGen → MAF mapping knowledge base
-#
-# Fields:
-#   name        - AutoGen class/symbol name
-#   module      - AutoGen import module
-#   generation  - "0.4" or "0.2"
-#   status      - auto | partial | manual | unknown
-#                 auto    = mechanical rename/restructure, no semantic gap
-#                 partial = mostly mechanical but has config/param differences
-#                 manual  = pattern change required (not a simple rename)
-#                 unknown = no known MAF equivalent yet
-#   maf_equivalent - MAF class/symbol name (required for status=auto)
-#   maf_module     - MAF import module for the equivalent
-#   guide_link  - learn.microsoft.com section covering this mapping
-#   ag2_note    - destination-neutral note if AG2 is a plausible alternative
-#   notes       - free-form migration note for the engineer
-#
-# Source: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/
-# Constructs are ordered by corpus frequency then generation (0.4 first).
-
-# ── Model clients ──────────────────────────────────────────────────────────────
-
 - name: OpenAIChatCompletionClient
   module: autogen_ext.models.openai
-  generation: "0.4"
+  generation: '0.4'
   status: auto
   maf_equivalent: OpenAIChatCompletionClient
   maf_module: agent_framework.openai
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#model-client-creation-and-configuration
-  notes: >
-    Same class name, different import path. API key is read from environment
-    (OPENAI_API_KEY) by default — drop explicit api_key= arg.
+  notes: 'Same class name, different import path. API key is read from environment (OPENAI_API_KEY)
+    by default — drop explicit api_key= arg.
 
+    '
 - name: AzureOpenAIChatCompletionClient
   module: autogen_ext.models.openai
-  generation: "0.4"
+  generation: '0.4'
   status: partial
   maf_equivalent: OpenAIChatCompletionClient
   maf_module: agent_framework.openai
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#model-client-creation-and-configuration
-  notes: >
-    MAF collapses Azure and OpenAI into a single OpenAIChatCompletionClient.
-    Pass azure_endpoint= and api_version=; use credential= (e.g.
-    AzureCliCredential) instead of api_key= for Entra auth. Rename required.
+  notes: 'MAF collapses Azure and OpenAI into a single OpenAIChatCompletionClient. Pass azure_endpoint=
+    and api_version=; use credential= (e.g. AzureCliCredential) instead of api_key= for Entra
+    auth. Rename required.
 
-# ── Agents ─────────────────────────────────────────────────────────────────────
-
+    '
 - name: AssistantAgent
   module: autogen_agentchat.agents
-  generation: "0.4"
+  generation: '0.4'
   status: auto
   maf_equivalent: Agent
   maf_module: agent_framework
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#single-agent-feature-mapping
   ag2_note: AG2 also has AssistantAgent with a compatible constructor signature.
-  notes: >
-    model_client= → client=; system_message= → instructions=;
-    max_tool_iterations= dropped (MAF handles loop termination differently).
-    FunctionTool wrappers become @tool-decorated functions passed directly.
+  notes: 'model_client= → client=; system_message= → instructions=; max_tool_iterations= dropped
+    (MAF handles loop termination differently). FunctionTool wrappers become @tool-decorated
+    functions passed directly.
 
+    '
 - name: AssistantAgent
   module: autogen
-  generation: "0.2"
+  generation: '0.2'
   status: partial
   maf_equivalent: Agent
   maf_module: agent_framework
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/
   ag2_note: AG2 preserves the legacy AssistantAgent API — lower-effort target for 0.2.
-  notes: >
-    Legacy 0.2 agent. llm_config= dict replaced by a proper client= object.
-    human_input_mode and code execution patterns have no direct MAF equivalent —
-    flag manual in the report.
+  notes: 'Legacy 0.2 agent. llm_config= dict replaced by a proper client= object. human_input_mode
+    and code execution patterns have no direct MAF equivalent — flag manual in the report.
 
+    '
 - name: UserProxyAgent
   module: autogen
-  generation: "0.2"
+  generation: '0.2'
   status: manual
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/
   ag2_note: AG2 preserves UserProxyAgent; prefer AG2 target if human-in-loop is required.
-  notes: >
-    No direct MAF equivalent. Human-in-the-loop, code execution, and reply
-    functions are all handled differently. Flag all usages for manual review.
+  notes: 'No direct MAF equivalent. Human-in-the-loop, code execution, and reply functions
+    are all handled differently. Flag all usages for manual review.
 
+    '
 - name: UserProxyAgent
   module: autogen.agentchat.user_proxy_agent
-  generation: "0.2"
+  generation: '0.2'
   status: manual
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/
   ag2_note: AG2 preserves UserProxyAgent; prefer AG2 target if human-in-loop is required.
   notes: Direct-path import of UserProxyAgent; same guidance as autogen.UserProxyAgent.
-
 - name: ConversableAgent
   module: autogen
-  generation: "0.2"
+  generation: '0.2'
   status: manual
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/
   ag2_note: AG2 preserves ConversableAgent as the base class.
-  notes: >
-    Base class for 0.2 agents. No direct MAF mapping — subclasses typically
-    map to Agent with instructions= and tools=; override logic must be
-    refactored manually.
+  notes: 'Base class for 0.2 agents. No direct MAF mapping — subclasses typically map to Agent
+    with instructions= and tools=; override logic must be refactored manually.
 
+    '
 - name: CodeExecutorAgent
   module: autogen_agentchat.agents
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Code execution support in MAF not yet confirmed; flag for manual review.
-
-# ── Tools ──────────────────────────────────────────────────────────────────────
-
 - name: FunctionTool
   module: autogen_core.tools
-  generation: "0.4"
+  generation: '0.4'
   status: auto
   maf_equivalent: tool
   maf_module: agent_framework
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#single-agent-feature-mapping
-  notes: >
-    Replace FunctionTool(func=fn, description=...) with @tool decorator on fn.
-    MAF infers schema from type annotations + docstring. Use
-    Annotated[T, Field(description=...)] for per-param docs.
+  notes: 'Replace FunctionTool(func=fn, description=...) with @tool decorator on fn. MAF infers
+    schema from type annotations + docstring. Use Annotated[T, Field(description=...)] for
+    per-param docs.
 
-# ── Teams / Group chat ─────────────────────────────────────────────────────────
-
+    '
 - name: RoundRobinGroupChat
   module: autogen_agentchat.teams
-  generation: "0.4"
-  status: unknown
+  generation: '0.4'
+  status: manual
   ag2_note: AG2 preserves RoundRobinGroupChat with the same API.
-  notes: >
-    Multi-agent orchestration; MAF equivalent not confirmed from migration guide.
-    Likely requires a workflow graph or custom orchestration layer. Flag manual.
-
+  notes: 'MAF replaces conversation-centric group chats with graph-based Workflows. Replace
+    with WorkflowBuilder: add each participant as an Agent/WorkflowAgent, wire sequential
+    edges for round-robin turn order, set max_iterations=N. Pattern change required — not
+    a simple rename.'
+  guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#multi-agent
 - name: SelectorGroupChat
   module: autogen_agentchat.teams
-  generation: "0.4"
-  status: unknown
+  generation: '0.4'
+  status: manual
   ag2_note: AG2 preserves SelectorGroupChat.
-  notes: Selector-based routing; no confirmed MAF equivalent. Flag manual.
-
+  notes: Replace with a Workflow using SwitchCaseEdgeGroup for conditional routing. The selector
+    model_client becomes an EdgeCondition evaluator. Pattern change required — not a simple
+    rename.
+  guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#multi-agent
 - name: MagenticOneGroupChat
   module: autogen_agentchat.teams
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Magentic-One orchestration; no confirmed MAF equivalent.
-
-# ── Messages ───────────────────────────────────────────────────────────────────
-
 - name: TextMessage
   module: autogen_agentchat.messages
-  generation: "0.4"
+  generation: '0.4'
   status: auto
   maf_equivalent: Message
   maf_module: agent_framework
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#single-agent-feature-mapping
-  notes: >
-    TextMessage(content=..., source=...) → Message(role=..., contents=[...]).
-    source= string maps to role=; content string becomes a single-item list.
+  notes: 'TextMessage(content=..., source=...) → Message(role=..., contents=[...]). source=
+    string maps to role=; content string becomes a single-item list.
 
+    '
 - name: MultiModalMessage
   module: autogen_agentchat.messages
-  generation: "0.4"
+  generation: '0.4'
   status: partial
   maf_equivalent: Message
   maf_module: agent_framework
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#single-agent-feature-mapping
-  notes: >
-    Heterogeneous content list must be converted to typed Content objects:
-    Content.from_text(...) and Content.from_uri(...). Image bytes require
-    base64 encoding into a data URI. Import Content from agent_framework.
+  notes: 'Heterogeneous content list must be converted to typed Content objects: Content.from_text(...)
+    and Content.from_uri(...). Image bytes require base64 encoding into a data URI. Import
+    Content from agent_framework.
 
+    '
 - name: ModelClientStreamingChunkEvent
   module: autogen_agentchat.messages
-  generation: "0.4"
+  generation: '0.4'
   status: manual
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#single-agent-feature-mapping
-  notes: >
-    No MAF class equivalent. Replace isinstance dispatch in run_stream() with
-    agent.run(stream=True) and access chunk.text directly. The event-based
-    pattern is gone; the streaming loop is simpler.
+  notes: 'No MAF class equivalent. Replace isinstance dispatch in run_stream() with agent.run(stream=True)
+    and access chunk.text directly. The event-based pattern is gone; the streaming loop is
+    simpler.
 
+    '
 - name: ChatMessage
   module: autogen_agentchat.messages
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Generic chat message base; check concrete subtype for the appropriate mapping.
-
 - name: AgentEvent
   module: autogen_agentchat.messages
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Agent lifecycle event type; no confirmed MAF equivalent.
-
 - name: HandoffMessage
   module: autogen_agentchat.messages
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Handoff pattern; no confirmed MAF equivalent.
-
 - name: StopMessage
   module: autogen_agentchat.messages
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Termination signal; MAF termination is handled by conditions, not message types.
-
 - name: ToolCallExecutionEvent
   module: autogen_agentchat.messages
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Tool call event; no confirmed MAF equivalent.
-
-# ── Task / Results ─────────────────────────────────────────────────────────────
-
 - name: TaskResult
   module: autogen_agentchat.base
-  generation: "0.4"
+  generation: '0.4'
   status: manual
   guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#single-agent-feature-mapping
-  notes: >
-    Used in run_stream() isinstance dispatch. Eliminated when migrating to
-    agent.run(stream=True) — there is no final-result event object; the loop
-    simply ends. Remove isinstance check.
+  notes: 'Used in run_stream() isinstance dispatch. Eliminated when migrating to agent.run(stream=True)
+    — there is no final-result event object; the loop simply ends. Remove isinstance check.
 
+    '
 - name: TaskResult
   module: autogen_agentchat.base._task
-  generation: "0.4"
+  generation: '0.4'
   status: manual
   notes: Private-path import of TaskResult; same guidance as autogen_agentchat.base.TaskResult.
-
-# ── Termination conditions ─────────────────────────────────────────────────────
-
 - name: MaxMessageTermination
   module: autogen_agentchat.conditions
-  generation: "0.4"
-  status: unknown
-  notes: Termination condition; MAF equivalent not confirmed from migration guide.
-
+  generation: '0.4'
+  status: partial
+  notes: Pass max_iterations= to WorkflowBuilder or Workflow — MAF enforces a DEFAULT_MAX_ITERATIONS
+    (100) by default. The standalone termination condition object is gone; the limit is a
+    workflow parameter.
+  maf_equivalent: WorkflowBuilder(max_iterations=N)
+  maf_module: agent_framework
+  guide_link: https://learn.microsoft.com/en-us/agent-framework/migration-guide/from-autogen/#multi-agent
 - name: TextMentionTermination
   module: autogen_agentchat.conditions
-  generation: "0.4"
-  status: unknown
-  notes: Text-based stop condition; MAF equivalent not confirmed.
-
-# ── UI helpers ─────────────────────────────────────────────────────────────────
-
+  generation: '0.4'
+  status: manual
+  notes: No direct MAF equivalent. Implement as an EdgeCondition on the workflow graph that
+    checks message content, or as a MiddlewareTermination that raises on the trigger phrase.
+    Requires custom logic.
 - name: Console
   module: autogen_agentchat.ui
-  generation: "0.4"
-  status: unknown
-  notes: Console streaming UI helper; no confirmed MAF equivalent.
-
-# ── Core runtime / messaging ───────────────────────────────────────────────────
-
+  generation: '0.4'
+  status: manual
+  notes: No direct MAF equivalent. The streaming console output pattern is replaced by iterating
+    over agent.run(stream=True) and printing each chunk.text. Remove Console wrapper and replace
+    with a plain async for loop over ResponseStream.
 - name: CancellationToken
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Async cancellation token; check MAF runtime docs for equivalent.
-
 - name: autogen_core
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Bare module import; inspect usage to determine what constructs are used.
-
 - name: AgentId
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Agent identity type; MAF uses different agent registration patterns.
-
 - name: DefaultSubscription
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Topic subscription for pub/sub runtime; MAF uses a different runtime model.
-
 - name: DefaultTopicId
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Default topic identifier; no confirmed MAF equivalent.
-
 - name: TypeSubscription
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Type-based subscription; MAF uses a different message routing model.
-
 - name: MessageContext
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Message metadata context; no confirmed MAF equivalent.
-
 - name: RoutedAgent
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Actor-model routed agent base; no direct MAF equivalent — flag manual.
-
 - name: message_handler
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Decorator for actor-model message handlers; pattern has no MAF equivalent.
-
 - name: try_get_known_serializers_for_type
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Serialization utility; check if MAF runtime needs this.
-
 - name: PROTOBUF_DATA_CONTENT_TYPE
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Protocol constant; depends on whether MAF uses protobuf transport.
-
 - name: TRACE_LOGGER_NAME
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Logging constant; replace with MAF logging config.
-
 - name: EVENT_LOGGER_NAME
   module: autogen_core
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Logging constant; replace with MAF logging config.
-
 - name: TRACE_LOGGER_NAME
   module: autogen_agentchat
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Logging constant from agentchat; replace with MAF logging config.
-
 - name: EVENT_LOGGER_NAME
   module: autogen_agentchat
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Logging constant from agentchat; replace with MAF logging config.
-
-# ── Core models ────────────────────────────────────────────────────────────────
-
 - name: ChatCompletionClient
   module: autogen_core.models
-  generation: "0.4"
-  status: unknown
-  notes: Abstract model client base; MAF uses agent_framework.openai.OpenAIChatCompletionClient.
-
+  generation: '0.4'
+  status: partial
+  notes: Abstract model client base class. MAF equivalent is BaseChatClient (agent_framework.BaseChatClient).
+    Used for type annotations and isinstance checks — swap the import; constructor call sites
+    use a concrete client like OpenAIChatCompletionClient.
+  maf_equivalent: BaseChatClient
+  maf_module: agent_framework
 - name: AssistantMessage
   module: autogen_core.models
-  generation: "0.4"
-  status: unknown
-  notes: Low-level model message type; check if MAF agent_framework.Message covers this.
-
+  generation: '0.4'
+  status: partial
+  notes: Low-level assistant-role message. Maps to Message(role='assistant', contents=[...])
+    in agent_framework.
+  maf_equivalent: Message
+  maf_module: agent_framework
 - name: LLMMessage
   module: autogen_core.models
-  generation: "0.4"
-  status: unknown
-  notes: Base message type for LLM interaction; check MAF Message hierarchy.
-
+  generation: '0.4'
+  status: partial
+  notes: Union base type for LLM messages. Equivalent to Message in agent_framework; use Message
+    for type annotations. Concrete subtypes (UserMessage, AssistantMessage) all map to Message
+    with appropriate role=.
+  maf_equivalent: Message
+  maf_module: agent_framework
 - name: UserMessage
   module: autogen_core.models
-  generation: "0.4"
-  status: unknown
-  notes: User-role model message; likely maps to Message(role="user", ...) in MAF.
-
+  generation: '0.4'
+  status: partial
+  notes: Low-level user-role message. Maps to Message(role='user', contents=[...]) in agent_framework.
+    Content string becomes a single-item list.
+  maf_equivalent: Message
+  maf_module: agent_framework
 - name: ModelFamily
   module: autogen_core.models
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Model capability classification; no confirmed MAF equivalent.
-
-# ── Logging ────────────────────────────────────────────────────────────────────
-
 - name: LLMCallEvent
   module: autogen_core.logging
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: LLM call telemetry event; no confirmed MAF equivalent.
-
-# ── Extensions ─────────────────────────────────────────────────────────────────
-
 - name: GrpcWorkerAgentRuntime
   module: autogen_ext.runtimes.grpc
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: gRPC-based distributed runtime; MAF uses a different runtime model.
-
 - name: MagenticOneCoderAgent
   module: autogen_ext.agents.magentic_one
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Magentic-One coder agent; no confirmed MAF equivalent.
-
 - name: MultimodalWebSurfer
   module: autogen_ext.agents.web_surfer
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Browser-based web surfing agent; no confirmed MAF equivalent.
-
 - name: FileSurfer
   module: autogen_ext.agents.file_surfer
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: File system agent; no confirmed MAF equivalent.
-
 - name: LocalCommandLineCodeExecutor
   module: autogen_ext.code_executors.local
-  generation: "0.4"
+  generation: '0.4'
   status: unknown
   notes: Local code execution; no confirmed MAF equivalent.
-
-# ── Legacy 0.2 ─────────────────────────────────────────────────────────────────
-
 - name: autogen
   module: autogen
-  generation: "0.2"
+  generation: '0.2'
   status: manual
   ag2_note: AG2 is a direct fork of pyautogen 0.2 — lower-effort migration target.
-  notes: >
-    Bare module import of legacy AutoGen 0.2 (pyautogen). Inspect usage to
-    determine which symbols are used; most have no mechanical MAF mapping.
-    AG2 is a lower-friction target for 0.2 codebases.
+  notes: 'Bare module import of legacy AutoGen 0.2 (pyautogen). Inspect usage to determine
+    which symbols are used; most have no mechanical MAF mapping. AG2 is a lower-friction target
+    for 0.2 codebases.
 
+    '
 - name: LLMConfig
   module: autogen
-  generation: "0.2"
+  generation: '0.2'
   status: manual
   ag2_note: AG2 preserves LLMConfig / config_list pattern.
-  notes: >
-    0.2 LLM configuration dict replaced by a proper client object in MAF.
-    Pass an instantiated OpenAIChatCompletionClient to Agent(client=...) instead.
+  notes: '0.2 LLM configuration dict replaced by a proper client object in MAF. Pass an instantiated
+    OpenAIChatCompletionClient to Agent(client=...) instead.
 
+    '
 - name: WikipediaPageLoadTool
   module: autogen.tools.experimental
-  generation: "0.2"
+  generation: '0.2'
   status: unknown
   notes: Experimental Wikipedia tool from 0.2; no confirmed MAF or AG2 equivalent.
-
 - name: WikipediaQueryRunTool
   module: autogen.tools.experimental
-  generation: "0.2"
+  generation: '0.2'
   status: unknown
   notes: Experimental Wikipedia query tool from 0.2; no confirmed MAF equivalent.
+- name: BufferedChatCompletionContext
+  module: autogen_core.model_context
+  generation: '0.4'
+  status: manual
+  notes: 'No direct MAF equivalent. AutoGen''s buffered context object is replaced by MAF''s
+    compaction strategies: pass a SlidingWindowStrategy or ContextWindowCompactionStrategy
+    to BaseChatClient(compaction_strategy=...). Remove the context object; configure the client
+    instead.'
