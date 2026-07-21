@@ -1,8 +1,11 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 1 (analyzer) — GATE 1.5 PASSED. 1.5a + 1.5b done. Next: ⛔ GATE 1.6 (Irek kill-gate — re-verify UNKNOWN rate on real repos before Phase 2).
-**Last updated:** 2026-07-21 (by agent)
-**Waiting on Irek:** GATE 1.6 — re-run `maf-migrate analyze` on same 3 repos from GATE 1.5, compare UNKNOWN rate vs baseline (89%). Verdict: is the analyzer now a useful lead magnet? YES → Phase 2. NO → reconsider bet-02.
+**Status: BET KILLED 2026-07-21 at ⛔ GATE 1.6 (Irek's call).** Do not build further. The
+paid tier's value (GroupChat → workflow-graph restructuring) has no mechanical mapping and
+no guide before→after pair; the codemod only automates the trivial imports/renames layer
+nobody pays for — so there is no paid product to attach to the free analyzer. Post-mortem:
+workspace `notes/side-income/bets/bet-02-maf-migrator.md` (Log 2026-07-21).
+**Last updated:** 2026-07-21 (kill).
 
 ## What this is
 
