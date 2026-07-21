@@ -34,11 +34,15 @@ def validate_manifest(manifest):
     repos = manifest.get("repos")
     if not isinstance(repos, list):
         return ["'repos' key missing or not a list"]
+    ALLOWED_FIELDS = REQUIRED_FIELDS | {"subdir"}
     for i, repo in enumerate(repos):
         label = repo.get("name", f"[{i}]")
         missing = REQUIRED_FIELDS - set(repo.keys())
         if missing:
             errors.append(f"{label}: missing fields {sorted(missing)}")
+        unknown = set(repo.keys()) - ALLOWED_FIELDS
+        if unknown:
+            errors.append(f"{label}: unknown fields {sorted(unknown)}")
         gen = repo.get("generation")
         if gen not in VALID_GENERATIONS:
             errors.append(f"{label}: invalid generation {gen!r}; must be one of {sorted(VALID_GENERATIONS)}")
@@ -77,7 +81,9 @@ def main():
 
     if args.dry_run:
         for r in repos:
-            print(f"  [{r['generation']}] {r['name']} ({r['license']}) -> corpus/{r['name']}")
+            subdir = r.get("subdir", "")
+            scan_path = f"corpus/{r['name']}/{subdir}" if subdir else f"corpus/{r['name']}"
+            print(f"  [{r['generation']}] {r['name']} ({r['license']}) -> {scan_path}")
         print("Dry run OK — no cloning performed.")
         return
 

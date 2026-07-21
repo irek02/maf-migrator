@@ -1,8 +1,8 @@
 # Build plan — MAF Migrator
 
-**Status:** Phase 1 (analyzer) — GATE 1.5 PASSED. 1.5a done (mapping coverage). Next: 1.5b (corpus integrity), then ⛔ GATE 1.6 (Irek kill-gate) before Phase 2.
+**Status:** Phase 1 (analyzer) — GATE 1.5 PASSED. 1.5a + 1.5b done. Next: ⛔ GATE 1.6 (Irek kill-gate — re-verify UNKNOWN rate on real repos before Phase 2).
 **Last updated:** 2026-07-21 (by agent)
-**Waiting on Irek:** GATE 1.6 (after 1.5a/1.5b land) — re-verify the analyzer's UNKNOWN rate actually dropped; kill-gate for the bet's core premise.
+**Waiting on Irek:** GATE 1.6 — re-run `maf-migrate analyze` on same 3 repos from GATE 1.5, compare UNKNOWN rate vs baseline (89%). Verdict: is the analyzer now a useful lead magnet? YES → Phase 2. NO → reconsider bet-02.
 
 ## What this is
 
@@ -159,7 +159,7 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       RoundRobinGroupChat as MANUAL, MaxMessageTermination as PARTIAL (WorkflowBuilder max_iterations),
       ChatCompletionClient/UserMessage/AssistantMessage/LLMMessage as PARTIAL (agent_framework.Message),
       BufferedChatCompletionContext as MANUAL (SlidingWindowStrategy). No UNKNOWN entries for these constructs.
-- [ ] [agent] 1.5b Corpus integrity: the gate found `corpus.yaml` pins are unreliable —
+- [x] [agent] 1.5b Corpus integrity: the gate found `corpus.yaml` pins are unreliable —
       magentic-ui's pin has zero AutoGen (only a false-positive `alembic.autogenerate`),
       and ag2 / taskweaver / agentscope / semantic-kernel / microsoft-autogen are the
       *frameworks themselves* (they define the API, not consume it). This skews 1.2's
@@ -170,6 +170,14 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
       and rewrite `docs/corpus-inventory.md`; note the corrected Phase 2 build order in the
       log. Test: same as 1.2 — aggregation logic on fixtures is the CI gate, corpus numbers
       are scoreboard.
+      (done 2026-07-21, awaiting manual verification)
+      Manual test: `python3 -m pytest tests/test_corpus.py -v` — all 8 tests pass with
+      updated schema (subdir field allowed) and ≥5 threshold. Also inspect `corpus.yaml` —
+      should contain exactly 6 genuine consumer repos (agentops, autogen-examples, autogen-mem0,
+      autogen-ui, gpt-researcher, autogen-samples). Check `docs/corpus-inventory.md` — should
+      show 6 repos, 90 unique constructs, with AssistantAgent and RoundRobinGroupChat at top.
+      `python3 scripts/corpus.py --dry-run` — should print 6 repo lines (autogen-samples shows
+      subdir path corpus/autogen-samples/python/samples) and "Dry run OK".
 - [ ] ⛔ GATE 1.6 [IREK] **Kill-gate — is the core hypothesis alive?** After 1.5a/1.5b,
       re-run `maf-migrate analyze` on the same 3 real repos from GATE 1.5 (gpt-researcher,
       autogen `agentchat_chess_game`, autogen `python/samples`) and compare the UNKNOWN rate
@@ -309,3 +317,4 @@ attio-sheets, **integrated tests can reach almost the entire product.** Rules:
 - 2026-07-20 — 1.4 done: `src/maf_migrator/reporter.py` — takes scan output + mappings.yaml, deduplicates constructs by (name, module), annotates each with status/MAF equivalent/notes from mappings, groups by status (auto/partial/manual/unknown), renders a Markdown report with SUMMARY table, CONSTRUCTS section grouped by effort band, and DESTINATION NOTE (AG2 alternative when relevant). `maf-migrate analyze` default output is now the human-readable report; `--json` flag preserves raw JSON for backward compat; `--output` writes to file. `tests/test_analyze.py` updated to pass `--json`. `tests/test_report.py` (12 tests): 2 golden-file snapshots + 10 structural/behavior assertions. pytest 57/57. Next: GATE 1.5 — needs Irek to run analyze on 3 corpus repos and confirm report is lead-magnet quality.
 
 - 2026-07-21 — 1.5a done: expanded `mappings.yaml` from 44 to 56 entries. 10 priority constructs classified: RoundRobinGroupChat + SelectorGroupChat → manual (Workflow/WorkflowBuilder, pattern change); MaxMessageTermination → partial (WorkflowBuilder max_iterations=N param); TextMentionTermination + Console + BufferedChatCompletionContext → manual (no direct MAF equivalent, custom logic required); ChatCompletionClient → partial (BaseChatClient); UserMessage + AssistantMessage + LLMMessage → partial (Message with role=). New fixture tests/fixtures/mini_projects/v04_multiagent added. 2 new tests. pytest 59/59. Next: 1.5b (corpus integrity — re-audit corpus.yaml, drop framework-defining repos, re-run inventory).
+- 2026-07-21 — 1.5b done: corpus.yaml re-audited. Dropped 19 entries: 6 framework-defining (ag2, taskweaver, agentscope, semantic-kernel/lazyagent, microsoft/autogen root, magentic-ui false-positive) + 6 genuine-consumer repos with 0 AutoGen imports (autogen-agi, autogen-codegen, autogen-tutorial-repos, chainlit, gpt-engineer, openagents) + 8 stub-SHA/404 uncloned entries. Added `autogen-samples` entry (microsoft/autogen `python/samples`, `subdir` field) replacing the framework root. Corpus: 25 → 6 genuine consumer repos. Re-ran `maf-migrate inventory` on cleaned corpus: 6 repos, 90 unique constructs. Corrected Phase 2 build order: AssistantAgent (autogen_agentchat, 3 repos), RoundRobinGroupChat (3 repos), OpenAIChatCompletionClient (2 repos), Console/TextMessage/CancellationToken (2 repos). corpus.py updated: allows optional `subdir` field in schema + shows subdir in dry-run output. test_corpus_yaml_has_enough_repos threshold updated ≥5 (was ≥20). pytest 59/59. Next: ⛔ GATE 1.6 (Irek).

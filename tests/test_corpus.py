@@ -11,6 +11,7 @@ CORPUS_YAML = REPO_ROOT / "corpus.yaml"
 CORPUS_SCRIPT = REPO_ROOT / "scripts" / "corpus.py"
 
 REQUIRED_FIELDS = {"name", "url", "commit", "license", "generation"}
+ALLOWED_FIELDS = REQUIRED_FIELDS | {"subdir"}
 VALID_GENERATIONS = {"v0.4", "v0.2", "mixed"}
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 
@@ -34,7 +35,7 @@ def test_corpus_yaml_loads():
 def test_corpus_yaml_has_enough_repos():
     manifest = _load_manifest()
     repos = manifest["repos"]
-    assert len(repos) >= 20, f"Expected ≥20 repos, got {len(repos)}"
+    assert len(repos) >= 5, f"Expected ≥5 genuine consumer repos, got {len(repos)}"
 
 
 def test_corpus_yaml_schema():
@@ -42,6 +43,8 @@ def test_corpus_yaml_schema():
     for i, repo in enumerate(manifest["repos"]):
         missing = REQUIRED_FIELDS - set(repo.keys())
         assert not missing, f"repo[{i}] ({repo.get('name', '?')}) missing fields: {missing}"
+        unknown = set(repo.keys()) - ALLOWED_FIELDS
+        assert not unknown, f"repo[{i}] ({repo.get('name', '?')}) unknown fields: {unknown}"
 
 
 def test_corpus_yaml_generation_values():
